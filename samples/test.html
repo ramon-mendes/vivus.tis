@@ -1,0 +1,323 @@
+﻿<!-- OmniView:on -->
+<html>
+<head>
+	<script type="text/tiscript">
+		include "../vivus.tis";
+
+		if(view.omni)
+		{
+			Omni.dom_tree_disable = true;
+			Omni.openConsole();
+		}
+
+		var tick = System.ticks;
+		function OnEnd() {
+			//if(view.omni)
+			//    trace("Took " + (System.ticks - tick) + "ms");
+		}
+
+		if(true)
+		{
+			var obtD = new Vivus(self#obt, {
+				type: "delayed",
+				duration: 150
+			});
+			$(.obturator button).onClick = ::obtD.reset().play();
+		}
+
+		if(true)
+		{
+			var polaroidD = new Vivus(self#polaroid-dynamic, {
+				type: "scenario-sync",
+				duration: 25
+			}, function() {
+				polaroidD.play(polaroidD.getStatus() == #end ? -1.0 : 1.0);
+			});
+		}
+
+		if(true)
+		{
+			var hiD = new Vivus(self#hi-dynamic, {
+				type: "scenario-sync",
+				duration: 20,
+				start: "manual"
+			}, OnEnd);
+			$(.hithere button).onClick = ::hiD.reset().play();
+		}
+		
+		if(true) 
+		{
+			var synthD = new Vivus(self#synth-dynamic, {
+				type: "oneByOne",
+				duration: 200,
+				start: "manual",
+				animTimingFunction: Vivus.EASE_IN
+			});
+			$(.synth button).onClick = ::synthD.reset().play();
+		}
+
+		function easeOutBounce(x) {
+			var base = -Math.cos(x * (0.5 * Math.PI)) + 1;
+			var rate = Math.pow(base,1.5);
+			var rateR = Math.pow(1 - x, 2);
+			var progress = -Math.abs(Math.cos(rate * (2.5 * Math.PI) )) + 1;
+			return (1-rateR) + (progress * rateR);
+		}
+	</script>
+
+	<style>
+		body
+		{
+			margin: 0;
+			flow: vertical;
+			font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+			color: #666;
+			font-size: 18px;
+		}
+
+		section
+		{
+			flow: horizontal;
+			border-spacing: 30px;
+
+			padding: 50px;
+			height: 50vh;
+			min-height: 300px;
+		}
+		section > * { size: *; margin: * 0; }
+
+		section.obturator	{ color: #86e0c4; background-color: #181f21; }
+		section.polaroid	{ color: #f037a5; stroke: #f037a5; background-color: #f8c72c; }
+		section.hithere		{ color: #78C9DB; stroke: #78C9DB; background-color: #E4175B; }
+		section.synth		{ color: #D3D679; stroke: #D3D679; background-color: #316BD2; }
+
+		svg
+		{
+			background: none;
+			fill: transparent;
+			//outline: solid 1px;
+		}
+	</style>
+
+	<style>
+		button
+		{
+			padding: 3px 6px;
+			border-radius: 6px;
+			border: 1px solid;
+			color: inherit;
+			background: none;
+			background-color: rgba(0,0,0,0);
+			cursor: pointer;
+		}
+		button.active, .button.active {
+			background-color: currentColor;
+		}
+		button.active span, .button.active span {
+			color: #FFFFFF;
+		}
+	</style>
+</head>
+
+<body>
+	<section .intro>
+		<div>
+			<h2>Vivus manual (cheap) tests.</h2>
+			<p>Just scroll along the page and if a glitch appear or the visual appearance is not like the description, it's not good.</p>
+		</div>
+	</section>
+
+	<section .obturator>
+		<div>
+			<p>
+				This should display the obturateur SVG like on the demo page. The strokes must be orange.
+			</p>
+			<button>Reset</button>
+		</div>
+
+		<svg viewBox="0 0 200 200" #obt.outline style="height: 250px">
+			<g stroke="#f60" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M10,100A90,90 0,1,1 190,100A90,90 0,1,1 10,100" length="566, 568;" />
+				<path d="M14.260000000000005,100A85.74,85.74 0,1,1 185.74,100A85.74,85.74 0,1,1 14.260000000000005,100" length="539, 541;" />
+				<path d="M27.052999999999997,100A72.947,72.947 0,1,1 172.947,100A72.947,72.947 0,1,1 27.052999999999997,100" length="459, 461;" />
+				<path d="M60.26,100A39.74,39.74 0,1,1 139.74,100A39.74,39.74 0,1,1 60.26,100" length="250, 252;" />
+				<path d="M34.042,131.189L67.047,77.781" length="63, 65;" />
+				<path d="M31.306,75.416L92.41,60.987" length="63, 65;" />
+				<path d="M68.81,34.042L122.219,67.046" length="63, 65;" />
+				<path d="M124.584,31.305L139.013,92.409" length="63, 65;" />
+				<path d="M165.957,68.809L132.953,122.219" length="63, 65;" />
+				<path d="M168.693,124.584L107.59,139.012" length="63, 65;" />
+				<path d="M131.19,165.957L77.781,132.953" length="63, 65;" />
+				<path d="M75.417,168.693L60.987,107.59" length="63, 65;" />
+			</g>
+		</svg>
+	</section>
+
+	<section .polaroid>
+		<svg viewBox="0 0 200 160" #polaroid-dynamic.outline style="height: 384px">
+			<g stroke-miterlimit="10" stroke-linejoin="round" stroke-linecap="round" stroke-width="3">
+				<!-- Case -->
+				<!-- The case items will be drawn at the same time (attribute `data-async` on each tag) with a custom duration of 40 frames (attribute `data-duration`). WARNING: When you want to draw a block asynchronously (like here), the last item need to be `data-async` free. Otherwise the following tags will also start at the same time. I know it's a bit confusing, play a bit with it and you'll see. -->
+				<path length="379" d="M106.725,104.742c-0.773,2.498-3.586,4.229-6.285,3.867L12.473,96.802c-2.699-0.363-4.262-2.682-3.49-5.18l25.164-81.436 c0.771-2.496,3.584-4.229,6.283-3.866l87.966,11.808c2.699,0.362,4.264,2.68,3.49,5.179L106.725,104.742z" data-duration="40" data-async></path>
+				<path length="228" d="M101.02,123.207c-0.773,2.5-3.587,4.23-6.286,3.867L6.766,115.27c-2.699-0.363-4.26-2.682-3.488-5.182l2.91-9.417 c0.771-2.499,3.585-4.23,6.285-3.87l87.967,11.809c2.699,0.361,4.261,2.682,3.49,5.18L101.02,123.207z" data-duration="40" data-async></path>
+				<path length="59" d="M103.377,128.225L154.768,155.32" data-duration="40" data-async></path>
+				<path length="52" d="M109.852,112.684L155.035,136.906" data-duration="40" data-async></path>
+				<path length="298" d="M9.096,120.207l47.932,21.994c0,0,98.06,12.414,97.74,13.119c-0.318,0.709,5.426-16.205,5.426-16.205l-2.646-96.842 c-1.098-7.587-2.467-11.8-8.559-15.024l-12.635-6.604" data-duration="40" data-async></path>
+				<path length="133" d="M161.586,38.135l30.717,16.085c0,0,5.295,2.323,4.543,6.504l-3.215,10.527c-0.648,2.621-2.939,4.988-8.229,2.798l-9.154-4.701 l-11.834,56.441" data-duration="40" data-async></path>
+				<path length="30" d="M183.148,49.518c0,0,5.295,2.324,4.543,6.506l-3.215,10.526c-0.648,2.622-2.938,4.988-8.229,2.798" data-duration="40"></path>
+				<!-- Lens -->
+				<!-- All item will be drawn line by line, with an exception for the first one, a little delay (attribute `data-delay) to make a break between the drawing of the case and the start of the lens part -->
+				<path length="154" d="M87.176,56.143C83.274,68.78,69.043,77.538,55.395,75.706S33.846,62.146,37.75,49.511c3.903-12.637,18.135-21.392,31.783-19.562 C83.181,31.782,91.081,43.51,87.176,56.143z" data-delay="20"></path>
+				<path length="188" d="M92.745,56.891c-4.785,15.48-22.219,26.213-38.942,23.969C37.079,78.615,27.4,64.245,32.184,48.763 c4.783-15.48,22.218-26.211,38.94-23.968C87.848,27.041,97.528,41.411,92.745,56.891z"></path>
+				<path length="126" d="M78.99,26.933c16.169,7.426,19.398,10.989,22.026,20.105c1.283,4.449,1.271,9.411-0.3,14.489 c-4.783,15.479-22.217,26.213-38.941,23.969c-8.68-1.165-21.171-7.963-25.613-14.055"></path>
+				<path length="33" d="M42.602,50.162c3.137-10.157,14.573-17.193,25.543-15.722"></path>
+				<!-- Flash -->
+				<!-- This tag does not have any extra attribute. So it will start when the previous tag is finished. His duration and delay will be the one given in the options. -->
+				<path length="60" d="M103.789,29.275c-0.568,1.841,0.582,3.549,2.57,3.818l12.807,1.72c1.988,0.266,4.062-1.012,4.633-2.851l1.66-5.38 c0.568-1.843-0.582-3.551-2.57-3.816l-12.807-1.72c-1.988-0.268-4.062,1.01-4.633,2.85L103.789,29.275z"></path>
+				<!-- Output -->
+				<!-- Same case as Flash -->
+				<path length="177" d="M11.129,105.791c-0.297,0.965,0.305,1.855,1.346,1.994l81.446,10.932c1.038,0.141,2.123-0.527,2.42-1.49l0,0 c0.298-0.961-0.304-1.855-1.343-1.996l-81.447-10.93C12.51,104.16,11.426,104.828,11.129,105.791L11.129,105.791z"></path>
+				<!-- Design (color lines on the front) -->
+				<!-- All the lines will start at the same time, because they all have the attribute `data-async` -->
+				<path length="14" d="M47.583,101.505L51.561,88.267" data-async></path>
+				<path length="13" d="M53.391,102.326L57.047,90.125" data-async></path>
+				<path length="13" d="M59.224,103.068L62.749,91.295" data-async></path>
+				<path length="14" d="M65.057,103.814L69.015,90.637" data-async></path>
+				<path length="10" d="M72.87,19.969L75.497,11.082" data-async></path>
+				<path length="10" d="M78.512,21.325L81.317,11.868" data-async></path>
+				<path length="12" d="M83.833,23.718L87.16,12.582" data-async></path>
+				<path length="14" d="M89.145,26.141L92.939,13.498" data-async></path>
+			</g>
+		</svg>
+
+		<p>
+			This should display the polaroid SVG like on the demo page. The strokes must have the same color as this text.
+			The animation repeats indefinitely.
+		</p>
+	</section>
+
+	<section .hithere>
+		<div>
+			<p>
+				This should display the 'Hi there' SVG like ready to start. Be sure no glitch appear (no small path or dots). Click on the following button to start.
+			</p>
+			<button>Reset</button>
+		</div>
+
+		<svg viewBox="0 0 404.7 354" #hi-dynamic.outline style="height: 280px">
+			<g stroke-miterlimit="10" stroke-linejoin="round" stroke-linecap="round" stroke-width="3">
+				<!-- HI -->
+				<path length="186" d="M324.6,61.2c16.6,0,29.5-12.9,29.5-29.5c0-16.6-12.9-29.5-29.5-29.5c-16.6,0-29.5,12.9-29.5,29.5C295.1,48.4,308,61.2,324.6,61.2z" data-duration="10"></path>
+				<path length="2216" d="M366.2,204.2c-9.8,0-15-5.6-15-15.1V77.2h-85v28h19.5c9.8,0,8.5,2.1,8.5,11.6v72.4c0,9.5,0.5,15.1-9.3,15.1H277h-20.7c-8.5,0-14.2-4.1-14.2-12.9V52.4c0-8.5,5.7-12.3,14.2-12.3h18.8v-28h-127v28h18.1c8.5,0,9.9,2.1,9.9,8.9v56.1h-75V53.4c0-11.5,8.6-13.3,17-13.3h11v-28H2.2v28h26c8.5,0,12,2.1,12,7.9v142.2c0,8.5-3.6,13.9-12,13.9h-21v33h122v-33h-11c-8.5,0-17-4.1-17-12.2v-57.8h75v58.4c0,9.1-1.4,11.6-9.9,11.6h-18.1v33h122.9h5.9h102.2v-33H366.2z" data-duration="130"></path>
+				<path length="60" d="M358.8,82.8c11.1-4.2,18.8-14.7,18.8-27.5c0-8.5-3.4-16-8.9-21.3" data-delay="20" data-async></path>
+				<path length="84" d="M124.2,105.7V77c0-11.5,9.1-13.8,17.5-13.8h10.5V44.7" data-async></path>
+				<path length="38" d="M147.9,40.2L171.2,63.2L175.7,63.2" data-async></path>
+				<path length="29" d="M295.1,32.1L275.2,12.2" data-async></path>
+				<path length="187" d="M266.2,204.7V75.9c0-8.5,5.2-12.8,13.7-12.8h18.3V44.7" data-async></path>
+				<path length="38" d="M265.9,105.2L289.2,129.2L293.7,129.2" data-async></path>
+				<path length="140" d="M374.2,204.7L374.2,94.2L358.8,82.8L351.2,77.2" data-async></path>
+				<path length="331" d="M148.2,237.2L171.2,261.2L294.6,261.2L300.5,261.2L402.2,261.2L402.2,228.2L379.2,204.2" data-async></path>
+				<path length="99" d="M124.2,204.7L124.2,157.2L175.7,157.2" data-async></path>
+				<path length="31" d="M147.7,228.2L129.2,204.2" data-async></path>
+				<path length="175" d="M7.2,237.3L30.2,261.2L152.2,261.2L152.2,241.7" data-async></path>
+				<path length="48" d="M1.9,40.2L26,63.2L39.7,63.2" data-async></path>
+				<path length="29" d="M129.2,12.2L148.2,33.2" data-async></path>
+				<path length="35" d="M303.9,53L328.1,77.2" data-async></path>
+				<path length="34" d="M345.1,10.5L368.7,34"></path>
+				<!-- there -->
+				<path length="851" d="M76.8,337.3c0,0,1.9,12.2,13.1,12.2c22.1,0,23.8-1.8,59-66.4c-19.7,35.7-36.4,66.2-19.3,66.2c15.2,0,22.9-14.2,28.3-23.7c3.3-0.5,24-3.2,35-25.5c4-8.1,4.1-17.8-8.1-15.2c-5.6,1.2-13.1,14.8-15.7,19.2c-7.6,12.7-22.4,45.2-22.4,45.2s10.3-22.4,21.5-22.4c15.5,0-9.4,22.4,4.7,22.4c4.9,0,11.7-11.4,16.6-20.9c7.5,4.7,19.7,1.7,24.5-8.1c10.1-20.4-14.4-12.8-24.5,8.1c-5.5,11.3-2.2,21.1,11.2,21.1c16.4,0,26.1-28.3,30.5-37.5c9.9,2.5,14,2.5,22.7-1.1c-3.5,5.1-24,38.1-8.3,38.1c6.7,0,11.7-11.4,16.6-20.9c7.5,4.7,19.7,1.7,24.5-8.1c10.1-20.4-14.4-12.8-24.5,8.1c-5.5,11.3-2.2,21.1,11.2,21.1c16.4,0,20.6-4,24.7-10.5" stroke-linejoin="round" stroke-linecap="round" data-duration="60" data-delay="30"></path>
+				<path length="37" d="M157.3,300.8c3.8-2.3-29,0.8-35.6,3.2" stroke-linejoin="round" stroke-linecap="round"></path>
+			</g>
+		</svg>
+	</section>
+
+	<section .synth>
+		<svg viewBox="0 0 378.995 259.5" version="1.1" #synth-dynamic.outline style="height: 280px">
+			<g id="Synth">
+				<path length="920" d="M375.5,108.934c1.549,2.693,0.627,5.739-2.059,6.804L72.043,235.257c-2.685,1.064-6.116-0.254-7.665-2.946L5.362,129.69   c-1.548-2.692-0.625-5.737,2.059-6.802L308.818,3.369c2.686-1.065,6.117,0.254,7.666,2.946L375.5,108.934z"></path>
+				<path length="494" d="M376.246,111.47l-2.068,18.344c0,0-0.621,5.361-4.932,7.726L69.601,256.365c-2.685,1.064-6.116-0.254-7.665-2.946L3.693,152.145   c-1.548-2.692-0.878-9.891-0.878-9.891l0.82-7.014"></path>
+				<path length="19" d="M373.785,112.765L371.715,130.65"></path>
+				<path length="325" d="M70.318,250.17L371.715,130.65"></path>
+				<path length="323" d="M319.578,22.078L19.852,140.935"></path>
+				<path length="124" d="M19.852,140.935L72.387,232.284L70.318,250.17"></path>
+				<path length="14" d="M371.715,130.65L365.053,119.063"></path>
+				<g id="octaves_1_">
+					<path length="42" d="M93.572,226.72L73.09,191.106"></path>
+					<path length="42" d="M114.616,218.126L94.134,182.512"></path>
+					<path length="109" d="M136.629,209.646L82.765,115.986"></path>
+					<path length="42" d="M158.158,201.108L137.674,165.493"></path>
+					<path length="42" d="M179.688,192.572L159.203,156.957"></path>
+					<path length="42" d="M201.213,184.034L180.732,148.419"></path>
+					<path length="109" d="M222.742,175.497L168.879,81.838"></path>
+					<path length="42" d="M244.27,166.959L223.789,131.346"></path>
+					<path length="42" d="M265.799,158.423L245.318,122.809"></path>
+					<path length="109" d="M287.328,149.886L233.463,56.226"></path>
+					<path length="42" d="M308.855,141.349L288.375,105.734"></path>
+					<path length="42" d="M330.385,132.812L309.902,97.197"></path>
+					<path length="42" d="M351.912,124.274L331.432,88.66"></path>
+					<path length="109" d="M373.441,115.737L319.578,22.078"></path>
+				</g>
+				<g id="bemols_1_">
+					<g>
+						<path length="150" d="M67.427,190.815L35.241,134.85L39.708,133.061L44.176,131.271L76.24,177.929L76.362,187.236Z"></path>
+						<path length="128" d="M69.3,180.708L36.616,135.539L44.606,132.34L76.24,177.929Z"></path>
+						<path length="5" d="M69.077,183.09L68.222,187.702"></path>
+					</g>
+					<g>
+						<path length="150" d="M89.117,182.213L56.931,126.247L61.398,124.458L65.866,122.669L97.93,169.326L98.052,178.634Z"></path>
+						<path length="128" d="M90.99,172.105L58.306,126.937L66.295,123.736L97.93,169.326Z"></path>
+						<path length="5" d="M90.767,174.487L89.912,179.1"></path>
+					</g>
+					<g>
+						<path length="150" d="M132.012,165.204L99.826,109.238L104.293,107.449L108.762,105.661L140.825,152.317L140.948,161.625Z"></path>
+						<path length="128" d="M133.885,155.098L101.202,109.928L109.191,106.728L140.825,152.317Z"></path>
+						<path length="5" d="M133.661,157.479L132.807,162.091"></path>
+					</g>
+					<g>
+						<path length="150" d="M153.541,156.666L121.354,100.7L125.821,98.911L130.289,97.122L162.354,143.779L162.475,153.088Z"></path>
+						<path length="128" d="M155.416,146.559L122.729,101.39L130.719,98.19L162.354,143.779Z"></path>
+						<path length="5" d="M155.191,148.94L154.335,153.554"></path>
+					</g>
+					<g>
+						<path length="150" d="M175.068,148.129L142.881,92.164L147.348,90.374L151.817,88.585L183.881,135.242L184.004,144.551Z"></path>
+						<path length="128" d="M176.941,138.021L144.256,92.853L152.247,89.653L183.881,135.242Z"></path>
+						<path length="5" d="M176.719,140.403L175.863,145.017"></path>
+					</g>
+					<g>
+						<path length="150" d="M218.127,131.056L185.939,75.089L190.406,73.3L194.875,71.512L226.938,118.169L227.061,127.476Z"></path>
+						<path length="128" d="M220,120.948L187.314,75.778L195.305,72.579L226.938,118.169Z"></path>
+						<path length="5" d="M219.775,123.329L218.922,127.942"></path>
+					</g>
+					<g>
+						<path length="150" d="M239.656,122.518L207.469,66.553L211.936,64.763L216.402,62.975L248.467,109.631L248.59,118.939Z"></path>
+						<path length="128" d="M241.529,112.411L208.844,67.241L216.834,64.042L248.467,109.631Z"></path>
+						<path length="5" d="M241.305,114.792L240.449,119.405"></path>
+					</g>
+					<g>
+						<path length="150" d="M282.713,105.443L250.525,49.478L254.992,47.688L259.459,45.9L291.523,92.558L291.646,101.864Z"></path>
+						<path length="128" d="M284.584,95.337L251.902,50.168L259.891,46.968L291.523,92.558Z"></path>
+						<path length="5" d="M284.361,97.718L283.508,102.33"></path>
+					</g>
+					<g>
+						<path length="150" d="M304.24,96.906L272.055,40.941L276.52,39.151L280.988,37.363L313.053,84.02L313.174,93.328Z"></path>
+						<path length="128" d="M306.113,86.8L273.43,41.631L281.42,38.431L313.053,84.02Z"></path>
+						<path length="5" d="M305.891,89.181L305.035,93.794"></path>
+					</g>
+					<g>
+						<path length="150" d="M325.768,88.369L293.582,32.404L298.049,30.614L302.518,28.825L334.58,75.482L334.703,84.791Z"></path>
+						<path length="128" d="M327.641,78.262L294.957,33.093L302.947,29.894L334.58,75.482Z"></path>
+						<path length="5" d="M327.418,80.644L326.562,85.257"></path>
+					</g>
+				</g>
+			</g>
+		</svg>
+
+		<div>
+			<p>
+				This should display a synth ready to start. Be sure no glitch appear (no small path or dots). The animation should use a custom path timing function (ease_in: slow at start then finish fast.). Click on the following button to start.
+			</p>
+			<button>Reset</button>
+		</div>
+	</section>
+</body>
+</html>

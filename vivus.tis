@@ -1,0 +1,418 @@
+﻿// Based on https://github.com/maxwellito/vivus
+class Vivus
+{
+	const LINEAR          = function (x) {return x;};
+	const EASE            = function (x) {return -Math.cos(x * Math.PI) / 2 + 0.5;};
+	const EASE_OUT        = function (x) {return 1 - Math.pow(1-x, 3);};
+	const EASE_IN         = function (x) {return Math.pow(x, 3);};
+	const EASE_OUT_BOUNCE = function (x) {
+		var base = -Math.cos(x * (0.5 * Math.PI)) + 1,
+		rate = Math.pow(base,1.5),
+		rateR = Math.pow(1 - x, 2),
+		progress = -Math.abs(Math.cos(rate * (2.5 * Math.PI) )) + 1;
+		return (1- rateR) + (progress * rateR);
+	};
+
+	// 60 FPS
+	const ANIM_TICKSPAN = (1000./60.).toInteger();
+
+
+	function this(el_or_selector, opt = {}, fn_callback = undefined)
+	{
+		assert typeof(el_or_selector)==#Element || typeof(el_or_selector)==#string;
+		assert typeof(opt)==#object;
+		assert !fn_callback || typeof(fn_callback)==#function;
+
+		if(typeof(el_or_selector)==#string)
+			el_or_selector = self.select(el_or_selector);
+
+		assert el_or_selector && el_or_selector.tag=="svg": "No SVG element found";
+
+		this.setOptions(opt);
+		this.isPlaying = false;
+		this.fn_callback = fn_callback;
+		this.el = el_or_selector;
+		el_or_selector.vivus = this;
+
+		this.prototype.prototype = opt;// hehhehe, shortcuts enabled
+		assert(this.type)
+
+		this.init();
+	}
+
+	function setOptions(opt)
+	{
+		const arr_allowedTypes = ["delayed", "async", "oneByOne", "scenario", "scenario-sync"];
+		const arr_allowedStarts = ["inViewport", "manual", "autostart"];
+
+		// Set the animation type
+		if(opt.type && arr_allowedTypes.indexOf(opt.type) === -1)
+			assert false : "Vivus [constructor]: " + opt.type + " is not an existing animation `type`";
+		else
+			opt.type = opt.type || arr_allowedTypes[0];
+
+		// Set the start type
+		if(opt.start && arr_allowedStarts.indexOf(opt.start) === -1)
+			assert false : "Vivus [constructor]: " + opt.start + " is not an existing `start` option";
+		else
+			opt.start = opt.start || arr_allowedStarts[0];
+
+		// defaults
+		opt.el_scrollable = opt.scrollable || self;
+		assert typeof(opt.el_scrollable) == #Element : "Vivus [constructor]: " + opt.el_scrollable + " is not an Element";
+
+		opt.duration = (typeof opt.duration==#integer) ? opt.duration : 120;
+		opt.delay = (typeof opt.delay==#integer) ? opt.delay : opt.duration/3;
+		assert typeof(opt.delay) == #integer;
+		assert opt.delay >= 0;
+
+		opt.dashGap = (typeof opt.dashGap==#integer) ? opt.dashGap : 2;
+		opt.animTimingFunction = opt.animTimingFunction || Vivus.LINEAR;
+		opt.pathTimingFunction = opt.pathTimingFunction || Vivus.LINEAR;
+
+		assert opt.delay < opt.duration : "Vivus [constructor]: delay must be shorter than duration";
+
+		opt.el = this;
+	}
+
+
+	//## Init ##
+	function mapping()
+	{
+		var totalLength = 0.0;
+		var arr_path_elp = this.el.$$(path);
+
+		for(var (i,elp) in arr_path_elp) {
+			// isInvisible check
+			if(elp.@#data-ignore)
+				continue;
+
+			// length check
+			var length;
+			if(elp.@.exists("length"))
+				length = elp.@#length.toInteger();
+
+			if(!length)
+			{
+				// Hack, try get length from style="stroke-dasharray: 186, 226;" from Vivus SVG output
+				if(elp.@#style && elp.@#style.indexOf("stroke-dasharray")!=-1)
+				{
+					var regx = /stroke-dasharray[ ]*:[ ]*(.*?);/i;
+					var res = regx.exec(elp.@#style);
+					if(res && res.length==2 && res[1])
+						length = res[1].toInteger();
+				}
+				// Hack: or from stroke-dasharray="63"
+				else
+				{
+					if(elp.@#stroke-dasharray)
+						length = elp.@#stroke-dasharray.toInteger();
+				}
+
+				if(!length)
+				{
+					stdout.$(Vivus [mapping]: {elp} has no length, check if its 'length' attribute is set);
+					continue;
+				}
+			}
+
+
+			var obj_path = {
+				elp: elp,
+				length: length,
+			};
+			this.arr_map.push(obj_path);
+
+			elp.@#stroke-dasharray = length + ` ` + (length + this.dashGap*2);
+			elp.@#stroke-dashoffset = length + this.dashGap;
+			obj_path.length += this.dashGap;
+
+			totalLength += length;
+		}
+
+		assert totalLength > 0;
+		this.delayUnit = Math.round(this.delay / Integer.max(1, arr_path_elp.length-1)).toInteger();
+
+		var lengthMeter = 0;
+		var timePoint = 0;
+
+		for(var (i,obj_path) in this.arr_map) {
+			assert typeof(this.duration) == #integer;
+			assert typeof(this.delay) == #integer;
+			assert typeof(this.delayUnit) == #integer;
+			assert typeof(lengthMeter) == #integer;
+
+			switch(this.type)
+			{
+				case "delayed":
+					obj_path.startAt = this.delayUnit * i;
+					obj_path.duration = this.duration - this.delay;
+					break;
+
+				case "oneByOne":
+					obj_path.startAt = lengthMeter.toFloat() / totalLength * this.duration;
+					obj_path.duration = obj_path.length / totalLength * this.duration;
+					if(obj_path.startAt + obj_path.duration > this.duration) {
+						obj_path.duration = this.duration - obj_path.startAt;
+					}
+					break;
+
+				case "async":
+					obj_path.startAt = 0;
+					obj_path.duration = this.duration;
+					break;
+
+				case "scenario-sync":
+					obj_path.startAt = timePoint + parsePositiveInt(obj_path.elp.@#data-delay, this.delayUnit);
+					obj_path.duration = parsePositiveInt(obj_path.elp.@#data-duration, this.duration);
+					timePoint = obj_path.elp.@#data-async !== undefined ? obj_path.startAt : obj_path.startAt + obj_path.duration;
+					this.frameLength = Integer.max(this.frameLength, obj_path.startAt + obj_path.duration);
+					break;
+
+				case "scenario":
+					obj_path.startAt = parsePositiveInt(obj_path.elp.@#data-start, this.delayUnit);
+					obj_path.duration = parsePositiveInt(obj_path.elp.@#data-duration, this.duration);
+					this.frameLength = Integer.max(this.frameLength, (obj_path.startAt + obj_path.duration));
+					break;
+			}
+			lengthMeter += obj_path.length;
+		}
+		this.frameLength = this.frameLength || this.duration;// outside the loop - midi
+	}
+
+	function init()
+	{
+		this.currentFrameFloat = 0.0;
+		this.frameLength = 0;
+		this.arr_map = [];
+
+		// Start
+		this.mapping();
+		this.starter();
+	}
+
+	function starter()
+	{
+		var vivus = this;
+		switch(vivus.start)
+		{
+			case "manual":
+				return;
+
+			case "autostart":
+				self.post(::vivus.play());
+				return;
+
+			case "inViewport":
+				{
+					var listener = function() {
+						if(vivus.el.seenIn(vivus.el_scrollable))
+						{
+							view.off(listener);
+							vivus.el_scrollable.off("scroll." + vivus.el.tagname());
+							vivus.play();
+						}
+					};
+
+					view.on("size", listener);// handler must have no parameters
+					vivus.el_scrollable.on("scroll." + vivus.el.tagname(), listener);
+					
+					self.post(listener);
+				}
+				return;
+		}
+	}
+
+
+	//## Animation ##
+	function onStep()
+	{
+		var vivus = this.vivus;
+		assert vivus;
+
+		if(!vivus.isPlaying)
+			return false;
+		return vivus.drawer();
+	}
+
+	function onEnd()
+	{
+		var vivus = this.vivus;
+		assert vivus;
+
+		vivus.isPlaying = false;
+		if(vivus.fn_callback && (vivus.getStatus()==#start || vivus.getStatus()==#end))
+		{
+			vivus.fn_callback.call(vivus);
+		}
+	}
+
+	function drawer()
+	{
+		this.currentFrameFloat += this.speed;
+
+		if(this.currentFrameFloat <= 0) {
+			this.stop();
+			this.reset();
+			return false;
+		} else if(this.currentFrameFloat >= this.frameLength) {
+			this.stop();
+			this.currentFrameFloat = this.frameLength;
+			this.trace();
+			return false;
+		}
+
+		this.trace();
+		return ANIM_TICKSPAN;
+	}
+
+	function trace()
+	{
+		var currentFrameFloat = this.animTimingFunction(this.currentFrameFloat / this.frameLength) * this.frameLength;
+
+		for(var (i,obj_path) in this.arr_map)
+		{
+			var progress = (currentFrameFloat - obj_path.startAt) / obj_path.duration;
+			progress = this.pathTimingFunction(Float.max(0, Float.min(1, progress)));
+			if(obj_path.progress !== progress) {
+				obj_path.progress = progress;
+				obj_path.elp.@#stroke-dashoffset = Math.floor(obj_path.length * (1 - progress));
+			}
+		}
+	}
+
+
+	//## User public API ##
+	function play(speed = 1.0)
+	{
+		assert typeof speed == #float;
+		this.speed = speed;
+
+		if(!this.isPlaying)
+		{
+			this.isPlaying = true;
+			this.el.animate(onStep, onEnd);
+		}
+		return this;
+	}
+
+	function stop()
+	{
+		this.isPlaying = false;
+		return this;
+	}
+
+	function destroy()
+	{
+		this.stop();
+		this.fn_callback = undefined;
+
+		for(var (i,obj_path) in this.arr_map) {
+			obj_path.elp.@#stroke-dasharray = undefined;
+			obj_path.elp.@#stroke-dashoffset = undefined;
+		}
+	}
+
+	function reset()
+	{
+		return this.setFrameProgress(0.0);
+	}
+
+	function finish()
+	{
+		return this.setFrameProgress(1.0);
+	}
+
+	function getFrameProgress()
+	{
+		return this.currentFrameFloat / this.frameLength;
+	}
+
+	function setFrameProgress(progress)
+	{
+		progress = Float.min(1, Float.max(0, progress));
+		this.currentFrameFloat = this.frameLength * progress;
+		this.trace();
+		return this;
+	}
+
+	function getStatus()
+	{
+		return this.currentFrameFloat == 0 ? #start : (this.currentFrameFloat === this.frameLength ? #end : #progress);
+	}
+}
+
+function parsePositiveInt(value, defaultValue) {
+	assert typeof(defaultValue) == #integer || defaultValue==undefined;
+	var output = typeof(value)==#string ? value.toInteger(defaultValue) : defaultValue;
+	return (output >= 0) ? output : defaultValue;
+}
+
+if(!Math.round)
+{
+	Math.round = function(v) {
+		return Math.floor( (v > 0.0) ? (v + 0.5) : (v - 0.5) ).toInteger();
+	}
+}
+
+if(!Element.seenIn)
+{
+	Element.seenIn = function(el_scrollable)
+	{
+		// http://sciter.com/forums/topic/isinviewport-function/
+		var (cx1,cy1,cx2,cy2) = this.box(#rect,#border,#view);
+		var (px1,py1,px2,py2) = el_scrollable.box(#rect,#inner,#view);
+
+		//log("A", this, cx1,cy1,cx2,cy2);
+		//log("B", self, px1,py1,px2,py2);
+
+		if( cy1 >= py2 ) return false; // below viewport
+		if( cy2 <= py1 ) return false; // above viewport
+		return true; // seen inside
+	}
+}
+
+if(!Element.tagname)
+{
+	Element.tagname = function()
+	{
+		var name = this.tag;
+		var id = this.id;
+		var classes = this.@#class;
+		if(id)
+			name += "#" + id;
+		if(classes)
+			name += "." + classes.split(" ").join(".");
+		return "<" + name + ">";
+	}
+}
+
+/*const n_iter = opt.duration / ANIM_TICKSPAN;
+var state_p = 0;
+var state_s = 1.0 / n_iter;
+var arr_path_elp = [];
+var arr_path_sizes = [];
+
+for(var elp in el)
+{
+	var len = elp.@#stroke-dasharray.toInteger();
+	elp.@#stroke-dashoffset = len;
+	arr_path_elp.push(elp);
+	arr_path_sizes.push(len);
+}
+
+var vivus = this;
+el.animate(function() {
+	state_p += state_s;
+	state_p = Float.min(1, state_p);
+
+	for(var (i,v) in arr_path_sizes)
+	{
+		arr_path_elp[i].@#stroke-dashoffset = arr_path_sizes[i] - 
+			state_p * arr_path_sizes[i];
+	}
+
+	if(state_p >= 1)
+		return false;
+	return ANIM_SPEED;
+});*/

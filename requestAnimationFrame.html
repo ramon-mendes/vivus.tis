@@ -1,0 +1,69 @@
+﻿<!-- OmniView:on -->
+<html>
+<head>
+	<script type="text/tiscript">
+		/*var animators = [];
+
+		self.timer(View.ANIMATION_TIMER_SPAN, function() {
+			if(view.state == View.WINDOW_HIDDEN) {
+
+			}
+		});
+
+		function requestAnimationFrame(cbk) {
+			animators.push(cbk);
+		}*/
+
+
+		/*
+		//https://github.com/c-smile/sciter-sdk/issues/39
+		var i = 0;
+		self.animate(function() {
+			log("anim", i++);
+			return 100;
+		}, function() {
+			log("end");
+		});
+		*/
+
+
+		/*
+		//https://github.com/c-smile/sciter-sdk/issues/40
+		var i = 0;
+		self.animate(function() {
+			if(i++ == 10)
+				return 0;
+
+			return 100;
+		}, function() {
+			stdout.println("First animate() ended, starting another one");
+
+			self.animate(function(p) {
+				stdout.println("This is called only once", p);// BUG: should allow starting another animation
+				return false;
+			}, 1000);
+		});*/
+		
+
+		/*const ANIM_TICKSPAN = 1000/60;
+		var i = 0;
+		var ended = false;
+
+		self.animate(function() {
+			i++;
+			stdout.println("step:", i, "ended:", ended);
+
+			if(i == 10)
+			{
+				ended = true;
+				stdout.println("stop");
+				return 0;
+			}
+			return 10;
+		});*/
+	</script>
+</head>
+
+<body>
+</body>
+</html>

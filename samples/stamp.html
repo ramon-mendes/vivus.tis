@@ -1,0 +1,43 @@
+﻿<!-- OmniView:on -->
+<html>
+<head>
+	<script type="text/tiscript">
+		include "../vivus.tis";
+
+		if(View.omni)
+			Omni.dom_tree_disable = true;
+
+		var v1 = new Vivus("#stamp1 svg", { type: "delayed", duration: 400 });
+		var v2 = new Vivus("#stamp2 svg", { type: "delayed", duration: 400 });
+	</script>
+
+	<style>
+		body
+		{
+			margin: 0;
+			flow: horizontal;
+			vertical-align: middle;
+			horizontal-align: center;
+			background-color: #181f21;
+		}
+
+		svg
+		{
+			size: 300px;
+			background: none;
+			fill: transparent;
+			stroke: blanchedalmond;
+		}
+	</style>
+</head>
+
+<body>
+	<div #stamp1>
+		<include src="stamp.svg" />
+	</div>
+
+	<div #stamp2>
+		<include src="stamp.svg" />
+	</div>
+</body>
+</html>

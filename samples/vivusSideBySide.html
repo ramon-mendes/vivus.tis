@@ -1,0 +1,66 @@
+﻿<!-- OmniView:off, HtmlView:on -->
+<html>
+<head>
+	<style>
+		@import url(style/global.css);
+
+		body
+		{
+			margin: 20px;
+			text-align: center;
+		}
+
+		svg
+		{
+			width: 300px;
+			height: 300px;
+			fill: none;
+			stroke: #FF495F;
+			stroke-width: 3px;
+		}
+	</style>
+</head>
+
+<body>
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" id="theSVG">
+		<path stroke-dasharray="566" d="M10,100A90,90 0,1,1 190,100A90,90 0,1,1 10,100"></path>
+		<path stroke-dasharray="539" d="M14.260000000000005,100A85.74,85.74 0,1,1 185.74,100A85.74,85.74 0,1,1 14.260000000000005,100"></path>
+		<path stroke-dasharray="459" d="M27.052999999999997,100A72.947,72.947 0,1,1 172.947,100A72.947,72.947 0,1,1 27.052999999999997,100"></path>
+		<path stroke-dasharray="250" d="M60.26,100A39.74,39.74 0,1,1 139.74,100A39.74,39.74 0,1,1 60.26,100"></path>
+		<path stroke-dasharray="63" d="M34.042,131.189L67.047,77.781"></path>
+		<path stroke-dasharray="63" d="M31.306,75.416L92.41,60.987"></path>
+		<path stroke-dasharray="63" d="M68.81,34.042L122.219,67.046"></path>
+		<path stroke-dasharray="63" d="M124.584,31.305L139.013,92.409"></path>
+		<path stroke-dasharray="63" d="M165.957,68.809L132.953,122.219"></path>
+		<path stroke-dasharray="63" d="M168.693,124.584L107.59,139.012"></path>
+		<path stroke-dasharray="63" d="M131.19,165.957L77.781,132.953"></path>
+		<path stroke-dasharray="63" d="M75.417,168.693L60.987,107.59"></path>
+	</svg>
+	
+	<script src="../vivus-master/dist/vivus.js"></script>
+
+	<script type="text/javascript">
+		var obt1 = new Vivus('theSVG', {
+			type: 'delayed',
+			duration: 150
+		});
+	</script>
+
+	<script type="text/tiscript">
+		include "../vivus.tis";
+
+		function LogDimension(el) {
+			var (cx1,cy1,cx2,cy2) = el.box(#rect);
+			log("LogDimension", cx1,cy1,cx2,cy2);
+		}
+
+		var v = new Vivus($(svg), {
+			type: "delayed",
+			duration: 150
+		});
+
+		//LogDimension($(svg));
+		//LogDimension($(img));
+	</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+﻿<!-- OmniView:on -->
+<html>
+<head>
+	<script type="text/tiscript">
+		include "../vivus.tis";
+
+		if(View.omni)
+			Omni.dom_tree_disable = true;
+
+		var arr_polaroids = $$(#area-polaroid svg);
+		var obt1 = new Vivus(arr_polaroids[0], {type: #delayed, duration: 150});
+		var obt2 = new Vivus(arr_polaroids[1], {type: #async, duration: 150});
+		var obt3 = new Vivus(arr_polaroids[2], {type: #oneByOne, duration: 150});
+
+		var arr_buttons = $$(#area-polaroid button);
+		arr_buttons[0].on("click", ::obt1.reset().play());
+		arr_buttons[1].on("click", ::obt2.reset().play());
+		arr_buttons[2].on("click", ::obt3.reset().play());
+	</script>
+
+	<style>
+		body
+		{
+
+			font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+			font-size: 18px;
+			width: 960px;
+		}
+
+		button, .button
+		{
+			margin: 0;
+			padding: 3px 6px;
+			border-radius: 6px;
+			border: 1px solid;
+			color: inherit;
+			background: none;
+			cursor: pointer;
+		}
+
+		.col-container
+		{
+			text-align: center;
+		}
+
+		section { flow: horizontal; }
+		section > div { width: *; text-align: center; }
+
+		#area-polaroid { color: #FF495F; }
+		#area-polaroid svg { stroke: #FF495F; }
+
+		svg
+		{
+			background: none;
+			fill: transparent;
+			stroke-width: 3px;
+		}
+	</style>
+</head>
+
+<body>
+	<div #area-polaroid>
+		<h2>Animation types</h2>
+		<section>
+			<div>
+				<include src="obturator.svg" />
+				<div class="col-container">
+					<h3>Delayed</h3>
+					<p>Every path element is drawn at the same time with a small delay at the start. This is currently the default animation.</p>
+					<button>replay</button>
+				</div>
+			</div>
+
+			<div>
+				<include src="obturator.svg" />
+				<div class="col-container">
+					<h3>Async</h3>
+					<p>Each line is drawn asynchronously. They all start and finish at the same time, hence the name `async`.</p>
+					<button>replay</button>
+				</div>
+			</div>
+
+			<div>
+				<include src="obturator.svg" />
+				<div class="col-container">
+					<h3>OneByOne</h3>
+					<p>Each path element is drawn one after the other. This animation gives the best impression of live drawing.</p>
+					<button>replay</button>
+				</div>
+			</div>
+		</section>
+	</div>
+</body>
+</html>

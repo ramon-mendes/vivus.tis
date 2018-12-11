@@ -1,0 +1,35 @@
+﻿<!-- OmniView:on, HtmlView:off -->
+<html>
+<head>
+	<script type="text/tiscript">
+		include "../vivus.tis";
+
+		if(View.omni)
+			Omni.dom_tree_disable = true;
+
+		var obt1 = new Vivus("svg", {type: #oneByOne, duration: 150});
+	</script>
+
+	<style>
+		body
+		{
+
+			font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+			font-size: 18px;
+			width: 960px;
+		}
+
+		svg
+		{
+			background: none;
+			fill: transparent;
+			stroke-width: 3px;
+			stroke: #FF495F; 
+		}
+	</style>
+</head>
+
+<body>
+	<include src="obturator.svg" />
+</body>
+</html>
