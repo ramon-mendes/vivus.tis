@@ -88,7 +88,7 @@ The good news is that I've made a .html 'script' page to automate this process, 
 
 A problem with this method: while testing, I noticed that sometimes the returned length is greater than the actual length. So the browser is returning the wrong measurement, or in Sciter, when you scale your SVG, the length gets incorrect. Anyway, you may have to manually tweak the value.
 
-# REFERENCE / TODO 
+# REFERENCE / TODO
 
 - http://surbhioberoi.com/a-complete-guide-to-svg/
 - http://gionkunz.github.io/chartist-js/
